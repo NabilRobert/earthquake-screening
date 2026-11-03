@@ -1,0 +1,9 @@
+from typing import Self
+
+import numpy as np
+from numpy.typing import NDArray
+
+class SVC:
+    def __init__(self, kernel: str = ..., C: float = ...) -> None: ...
+    def fit(self, X: NDArray[np.float64], y: NDArray[np.bool_]) -> Self: ...
+    def decision_function(self, X: NDArray[np.float64]) -> NDArray[np.float64]: ...
