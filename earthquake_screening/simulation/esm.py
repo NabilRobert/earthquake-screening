@@ -83,6 +83,25 @@ def select_components(flatfile_csv: str) -> list[SelectedComponent]:
     return sorted(selected, key=lambda component: component.record_id)
 
 
+def _component_from_row(row: dict[str, str]) -> SelectedComponent:
+    return SelectedComponent(
+        event_id=row["event_id"],
+        event_time=row["event_time"],
+        magnitude=float(row["magnitude"]),
+        epicentral_distance_km=float(row["epicentral_distance_km"]),
+        network=row["network"],
+        station=row["station"],
+        location=row["location"],
+        channel=row["channel"],
+        quality=row["quality"],
+    )
+
+
+def read_selection(path: str) -> list[SelectedComponent]:
+    with open(path, newline="") as selection:
+        return [_component_from_row(row) for row in csv.DictReader(selection)]
+
+
 def write_selection(components: list[SelectedComponent], path: str) -> None:
     with open(path, "w", newline="") as output:
         writer = csv.DictWriter(output, fieldnames=[field.name for field in fields(SelectedComponent)])

@@ -67,8 +67,8 @@ PARAMETER_NAMES: tuple[str, ...] = tuple(GroundMotionParameters.model_fields)
 
 
 def envelope(times: FloatArray, parameters: GroundMotionParameters) -> FloatArray:
-    """The time envelope q(t) of Eq. 3, with T0 = 0 as in the paper's simulations."""
-    build_up = parameters.envelope_amplitude * (times / parameters.build_up_end_s) ** 2
+    """The time envelope q(t) of Eq. 3, starting at t = 0 (T0 = 0, as in the paper's simulations)."""
+    build_up = np.where(times > 0, parameters.envelope_amplitude * (times / parameters.build_up_end_s) ** 2, 0.0)
     time_after_peak = np.clip(times - parameters.strong_phase_end_s, 0.0, None)
     decay = parameters.envelope_amplitude * np.exp(-parameters.decay_rate * time_after_peak**parameters.decay_shape)
     plateau = np.full_like(times, parameters.envelope_amplitude)
