@@ -14,6 +14,7 @@ HANDOVER*.md
 # or read them; the repo never carries them.
 data/raw/
 data/records/
+data/prj2048/
 data/partner/
 *.EDB
 *.e2k

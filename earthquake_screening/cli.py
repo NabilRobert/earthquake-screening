@@ -11,6 +11,7 @@ from pathlib import Path
 
 import typer
 
+from earthquake_screening import prj2048
 from earthquake_screening.reproduction.report import format_report
 from earthquake_screening.reproduction.sainct2020 import run_reproduction
 from earthquake_screening.simulation import esm, esm_records
@@ -58,6 +59,14 @@ def fit_records(output: Path = Path("data/generated/fitted.json"), seed: int = 2
             typer.echo(f"not fitted: {outcome.record_id}: {outcome.failure}")
     fitted_count = sum(outcome.fitted is not None for outcome in outcomes)
     typer.echo(f"{fitted_count} of {len(outcomes)} components fitted -> {output}")
+
+
+@app.command()
+def fetch_prj2048() -> None:
+    """Download slice 2's part of PRJ-2048 (or check what's here) against the pinned checksums."""
+    fetched = prj2048.fetch(Path("data/prj2048"), Path("data/prj2048.sha256"))
+    Path("data/PRJ2048_ATTRIBUTION.md").write_text(prj2048.ATTRIBUTION)
+    typer.echo(f"fetched {fetched / 1e6:.1f} MB; checksums in data/prj2048.sha256")
 
 
 @app.command(name="build-pool")
