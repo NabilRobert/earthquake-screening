@@ -17,7 +17,7 @@ import numpy as np
 import openseespy.opensees as ops
 from numpy.typing import NDArray
 
-from earthquake_screening.simulation.linear_system import respond
+from earthquake_screening.simulation.linear_system import peak_oscillator_displacement
 
 FloatArray = NDArray[np.float64]
 
@@ -57,14 +57,9 @@ def linear_peak_displacement(ground_acceleration: FloatArray, time_step: float, 
     z'' + 2*zeta*w*z' + w^2*z = -a_g, solved exactly for a piecewise-linear record: within
     0.8% of a 20-substep reference in spike 3, where Newmark at the same step was 6% off.
     """
-    omega = oscillator.angular_frequency
-    matrices = (
-        ((0.0, 1.0), (-(omega**2), -2 * oscillator.damping_ratio * omega)),
-        ((0.0,), (-1.0,)),
-        ((1.0, 0.0),),
-        ((0.0,),),
+    return peak_oscillator_displacement(
+        ground_acceleration, time_step, oscillator.angular_frequency, oscillator.damping_ratio
     )
-    return float(np.max(np.abs(respond(matrices, time_step, ground_acceleration))))
 
 
 def _build_opensees_model(ground_acceleration: FloatArray, time_step: float, oscillator: Oscillator) -> None:
