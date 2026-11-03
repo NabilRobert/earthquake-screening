@@ -58,6 +58,10 @@ class TrainingEnvelope:
 
     def refusal_reasons(self, inputs: FloatArray) -> list[str]:
         """Why one input row is refused; an empty list means it is accepted."""
+        if inputs.shape != (len(INPUT_NAMES),):
+            raise ValueError(
+                f"expected {len(INPUT_NAMES)} inputs in this order: {', '.join(INPUT_NAMES)}; got {inputs.shape}"
+            )
         reasons: list[str] = []
         for name, value, low, high in zip(INPUT_NAMES, inputs, self.minimum, self.maximum, strict=True):
             if not np.isfinite(value):

@@ -1,6 +1,7 @@
 """The training envelope: inputs out of range, non-numbers and unseen combinations are refused with reasons."""
 
 import numpy as np
+import pytest
 
 from earthquake_screening.buildings.dataset import INPUT_NAMES
 from earthquake_screening.screening.envelope import TrainingEnvelope
@@ -65,3 +66,8 @@ def test_checking_many_rows_agrees_with_checking_one() -> None:
     rows[3, 2] = np.inf
     assert envelope.accepts(rows).tolist() == [envelope.refusal_reasons(row) == [] for row in rows]
     assert envelope.accepts(rows).tolist() == [True, False, False, False]
+
+
+def test_a_row_with_a_missing_input_is_an_error_naming_the_expected_inputs() -> None:
+    with pytest.raises(ValueError, match="expected 12 inputs in this order: storeys"):
+        two_cluster_envelope().refusal_reasons(np.full(INPUT_COUNT - 1, 0.5))
