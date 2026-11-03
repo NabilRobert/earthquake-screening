@@ -1,6 +1,8 @@
 # Guide
 
-How one reproduction run works, the words it uses, and where to change things.
+How one run of each slice works, the words they use, and where to change things.
+Slice 1 reproduces a paper on a single oscillator; slice 2 trains a building-level
+surrogate on PRJ-2048.
 
 ## The flow: one run, from records to the verdict
 
@@ -48,6 +50,40 @@ flowchart TD
 7. **Verdict.** `reproduction/report.py: format_report` writes the table next to the
    paper's and says PASS or MISS by the rule in `sainct2020.py: has_passed`.
 
+## Slice 2: one run, from PRJ-2048 to the verdict
+
+```mermaid
+flowchart TD
+    A[data/prj2048: designs, drifts, 240 ground motions] -->|load_prj2048| B[621 frames x 240 motions]
+    B -->|split_prj2048| C{frame: fit, calibration or test; motion: training or held out}
+    C -->|fit frames x training motions| D[cross-validate boosting vs GP, refit the winner]
+    C -->|calibration frames x held-out motions| E[MAPIE 90% intervals; envelope distance limit]
+    D --> E
+    C -->|test frames x held-out motions| F[accuracy, coverage, refusals; class baseline on the same rows]
+    E --> F
+    F --> G[prj2048-result.md: PASS or MISS]
+```
+
+1. **Read the data.** `buildings/dataset.py: load_prj2048` reads each frame's six
+   design numbers (`read_designs`), its peak drift under each ground motion, the
+   largest over storeys (`read_peak_drifts`), and each ground motion's PGA and
+   response spectrum at 0.2 to 4 s (`read_shaking`, `shaking_intensities`, using
+   `simulation/linear_system.py: peak_oscillator_displacement`).
+2. **Split.** `buildings/split.py: split_prj2048` puts each frame in exactly one of
+   fit, calibration or test, stratified by storeys, and holds 48 ground motions out of
+   training. `rows_for` pairs frames with motions into input rows;
+   `is_split_clean` checks nothing leaks.
+3. **Choose and fit.** `surrogate/building_model.py: cross_validate` scores gradient
+   boosting and a Gaussian process on the fit rows, folds grouped by frame; `choose`
+   takes the lower error; `fit_candidate` refits it.
+4. **Intervals and envelope.** `buildings/experiment.py: train` wraps the model in
+   MAPIE's `SplitConformalRegressor`, calibrated on the calibration rows, and builds
+   `screening/envelope.py: TrainingEnvelope` from the fit and calibration rows.
+5. **Judge.** `experiment.py: evaluate` measures the model and
+   `surrogate/class_baseline.py: ClassBaseline` on the test rows; `has_passed`
+   applies the pass rule; `buildings/report.py: format_report` writes the result and
+   `save_model` the model with its hash.
+
 ## Glossary
 
 | Term | Meaning | In the code |
@@ -67,7 +103,15 @@ flowchart TD
 | **ΔL2** | The weighted root mean square gap between the estimated curve and the true failure rates | `fragility.py: fragility_error` |
 | **T0, lead-in** | The quiet stretch before the shaking starts in a real record; fitted, then dropped | `record_fit.py: fit_envelope` |
 | **Checksum** | A fingerprint (SHA-256) of a downloaded file, pinned so a changed file is caught | `esm_records.py` |
-| **Pass rule** | What counts as reproducing the paper, written down before running | `sainct2020.py: has_passed` |
+| **Pass rule** | What counts as success, written down before running | `sainct2020.py: has_passed`, `experiment.py: has_passed` |
+| **PRJ-2048** | A public dataset of 621 steel moment frames, each simulated in OpenSees under 240 ground motions | `buildings/dataset.py` |
+| **Inter-storey drift ratio** | How far one floor moves sideways relative to the floor below, divided by the storey height. The usual measure of structural damage | `read_peak_drifts` |
+| **Sa(T), response spectrum** | The peak acceleration a simple oscillator with period T feels in the shaking (5% damping); the spectrum lists it over many periods | `shaking_intensities` |
+| **Split by frame** | Test frames never appear in training, under any ground motion, so the error measures new buildings | `buildings/split.py` |
+| **Gradient boosting, Gaussian process** | The two candidate surrogates: many small decision trees added up, and a smooth function with its own uncertainty | `building_model.py` |
+| **Conformal interval, coverage** | A range around each prediction, sized on held-out calibration rows so it holds the true value 90% of the time; coverage is how often it actually does on test | `experiment.py: train`, MAPIE |
+| **Training envelope, refusal** | The region of inputs the model learned from; outside it, the answer is a refusal with the reason, never a number | `screening/envelope.py` |
+| **Hazus, class baseline** | FEMA's loss model groups buildings into classes (here steel frames, low, mid or high-rise) and treats each class alike; the baseline does the same | `class_baseline.py` |
 
 ## Where to change things
 
@@ -82,3 +126,12 @@ flowchart TD
   and `IMPULSE_DECAY_CUTOFF` (ground motions).
 - **The SVM and the error measure:** `SVM_REGULARIZATION` and `FRAGILITY_GROUP_COUNT`.
   Both were fixed before running; changing them after seeing a result is tuning.
+- **Slice 2's split, models and intervals:** `SPLIT_SEED` and the shares in
+  `buildings/split.py`; `BOOSTING_*` and `GP_SAMPLE_ROWS` in `building_model.py`;
+  `CONFIDENCE_LEVEL` and `COVERAGE_BAND` in `buildings/experiment.py`. All were fixed
+  before the run (`docs/building-surrogate/prj2048.md`); changing them needs a dated
+  note there.
+- **Which shaking inputs the surrogate uses:** `SPECTRAL_PERIODS_S` in
+  `buildings/dataset.py`. The envelope and the baseline follow it.
+- **How strict the refusals are:** `ACCEPTED_CALIBRATION_PERCENTILE` in
+  `screening/envelope.py`.
