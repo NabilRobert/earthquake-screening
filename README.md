@@ -54,7 +54,9 @@ Records and generated data live in `data/` and are never committed.
   Russo E., Luzi L., Lanzano G., Sgobba S., Brunelli G., Ramadan F., Pacor F., ORFEUS
   Strong-Motion SMC (2026). Engineering Strong Motion Database (ESM), version 3.0.
   INGV. https://doi.org/10.13127/esm.3. `data/esm_selection.csv` is derived from its
-  metadata.
+  metadata. Each file states its own licence: 64 of the 148 components say "unknown",
+  so the records, and the data generated from them, are never redistributed or
+  published; only their list and checksums are in the repo.
 - **Method:** Sainct R., Feau C., Martinez J.-M., Garnier J. (2020), Structural Safety
   86:101972; and Rezaeian S., Der Kiureghian A. (2008, 2010) for the ground-motion
   model.
