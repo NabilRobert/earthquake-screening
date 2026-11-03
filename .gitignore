@@ -1,0 +1,41 @@
+# Private notes and handovers never go in the repo.
+private/
+backups/
+HANDOVER*.md
+*.local.md
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Licensed or third-party inputs that may not be redistributed
+# (ground-motion records, ETABS models, partner results). Scripts fetch
+# or read them; the repo never carries them.
+data/raw/
+data/records/
+data/partner/
+*.EDB
+*.e2k
+*.$et
+
+# Generated bulk: simulation outputs, trained models, caches
+data/generated/
+runs/
+*.log
+*.h5
+*.npz
+*.pt
+*.onnx
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
