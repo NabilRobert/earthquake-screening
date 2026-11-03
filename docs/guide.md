@@ -7,7 +7,7 @@ How one reproduction run works, the words it uses, and where to change things.
 ```mermaid
 flowchart TD
     A[ESM metadata] -->|select-records| B[data/esm_selection.csv: 148 components]
-    B -->|download and fit, waits for approval| C[fitted.json: 8 parameters per record]
+    B -->|fetch-records, fit-records| C[fitted.json: 8 parameters per record]
     C -->|build-pool| D[100,000 synthetic records]
     D --> E{Y <= L <= 6Y?}
     E -->|no| F[kept, not labelled]
@@ -21,9 +21,13 @@ flowchart TD
 1. **Choose the real records.** `simulation/esm.py: select_components` applies the
    paper's filter (5.5 < Mw < 6.5, under 20 km, before 2018-09-25, quality BEST or
    GOOD) to ESM's metadata. The result is pinned in `data/esm_selection.csv`.
-2. **Fit each record** (waits for the download). `simulation/record_fit.py:
-   fit_record` finds the 8 parameters: the envelope from the cumulative energy, the
-   filter frequencies from zero up-crossings, the filter damping by simulation.
+2. **Fetch and fit each record.** `simulation/esm_records.py: fetch_recordings`
+   downloads the zips and checks them against `data/esm_records.sha256`.
+   `simulation/fit_all.py: fit_components` runs `simulation/record_fit.py: fit_record`
+   on every component: the envelope and the quiet lead-in T0 from the cumulative
+   energy, then, on the record after T0, the filter frequencies from zero up-crossings
+   and the filter damping by simulation. A record that can't be fitted is listed and
+   left out.
 3. **Draw synthetic records.** `simulation/synthesis.py: draw_synthetic_specs` picks a
    fitted record at random and adds Gaussian noise (a kernel density), 100,000 times.
    Each draw keeps its parent's length and gets its own seed.
@@ -61,6 +65,8 @@ flowchart TD
 | **Box-Cox** | A power transform that makes skewed features closer to normal, before standardising | `active_learning.py: standardised_features` |
 | **k-means groups** | Records split into groups of similar values, to draw a curve from many points | `fragility.py: group_by_value` |
 | **ΔL2** | The weighted root mean square gap between the estimated curve and the true failure rates | `fragility.py: fragility_error` |
+| **T0, lead-in** | The quiet stretch before the shaking starts in a real record; fitted, then dropped | `record_fit.py: fit_envelope` |
+| **Checksum** | A fingerprint (SHA-256) of a downloaded file, pinned so a changed file is caught | `esm_records.py` |
 | **Pass rule** | What counts as reproducing the paper, written down before running | `sainct2020.py: has_passed` |
 
 ## Where to change things

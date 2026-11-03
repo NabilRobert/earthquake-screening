@@ -12,12 +12,11 @@ Each one is measured, with its method, so it can be checked again.
 - **Selection:** the paper's filter on ESM's metadata service (one CSV, about 1 MB)
   gives 148 horizontal components from 74 recordings and 18 events
   ([deviations](reproduction/sainct2020.md#known-differences-from-the-paper)).
-- **Size: not measured exactly, by design.** The metadata doesn't give sample counts,
-  and measuring would mean downloading. Estimate: ESM records are usually sampled at
-  200 Hz and last 30 to 120 s, so one component is about 6,000 to 24,000 samples.
-  For all 148: about 12 to 46 MB as ESM's ASCII format (about 13 characters a
-  sample), or 4 to 15 MB as MiniSEED. We'd take ASCII: it needs no new dependency to
-  read. **Waits for Arthur's OK.**
+- **Size, measured on download (2026-11-03):** 74 recordings, 16.0 MB of zips, checksums
+  in `data/esm_records.sha256`. Estimated beforehand at 12 to 46 MB.
+- **Licences inside the files:** each file states its own: 64 components "U (unknown
+  license)", 46 CC BY 3.0 IT, 36 CC BY 4.0, 2 "network default". They are used here,
+  not redistributed, and every network is credited in `data/ESM_ATTRIBUTION.md`.
 
 ## 2. DesignSafe PRJ-2048 (slice 2): what slice 2 needs, and its size
 

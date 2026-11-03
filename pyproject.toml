@@ -48,8 +48,8 @@ ignore = ["S101"]
 max-complexity = 10
 
 [tool.pyright]
-include = ["earthquake_screening", "tests"]
-strict = ["earthquake_screening", "tests"]
+include = ["earthquake_screening", "tests", "scripts"]
+strict = ["earthquake_screening", "tests", "scripts"]
 pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"

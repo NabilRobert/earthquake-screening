@@ -37,6 +37,9 @@ against the result. Each is a named constant in the code.
 | Logistic fit | Unpenalised | The paper fits a plain logistic regression | `failure_probabilities` |
 | Damping search for the record fit | 45 values from 0.02 to 0.9, 5 simulations each | The paper matches counts "by simulation" without a grid | `DAMPING_CANDIDATES` |
 | Nonlinear time integration | Newmark average acceleration, 5 substeps per sample | Within 0.4% of a 40-substep reference ([spikes](../spikes.md)) | `SUBSTEPS_PER_SAMPLE` |
+| Start delay T0 of real records | Fitted with the envelope; frequencies and damping fitted on the record after it; synthetic length is the length after it | The paper fits T0 for real records and sets it to 0 when simulating, without saying how. Added after the first real record failed (pre-event noise), before any pool or result existed | `record_fit.py: fit_record` |
+| Expected up-crossing rate | w_f / (2 pi), the narrow-band limit | The paper uses sigma_y' / (2 pi) with a discretisation factor of 0.75 to 1 | `fit_filter_frequencies` |
+| Envelope search limits | `ENVELOPE_BOUNDS` | Without them the optimiser underflowed T2 onto T1 on a real record | `record_fit.py` |
 
 ## Known differences from the paper
 
@@ -51,7 +54,39 @@ against the result. Each is a named constant in the code.
 - **The engine.** The paper solved the oscillator "with a finite-difference method".
   We use OpenSees for the nonlinear run and an exact solution for the linear one.
 
-## Status
+## Result: a miss (run once, 2026-11-03)
 
-Code, tests and the pass rule are in place. The run waits for Arthur's OK to download the
-148 selected components ([spikes](../spikes.md)).
+Full table: [sainct2020-result.md](sainct2020-result.md). Seed 2020, 20 start pairs,
+50 groups, judged on the PGA rows:
+
+| Curve against PGA | Ours, Delta L2 % | Paper, Delta L2 % | Inside the band |
+|---|---|---|---|
+| 100 labelled | 4.02 ± 1.46 | 2.6 ± 1.0 | no |
+| 1,000 labelled | 3.00 ± 0.38 | 1.6 ± 0.3 | no |
+
+The score and L rows miss by a similar factor (1.5 to 2.3 times the paper's error).
+What the method does reproduce: the error falls from 100 to 1,000 labels for every
+curve, as in the paper.
+
+**What differed in the data:**
+- 134 of the 148 components fitted. The other 14 got a negative end frequency (long,
+  quiet codas that a linear frequency drift can't describe) and were left out.
+- 55,451 of 100,000 synthetic records fell in the window Y <= L <= 6Y, against the
+  paper's 33,718, and 22.8% of them failed, against about 17%. Our records are a
+  different and, by these numbers, stronger set.
+- No OpenSees run failed to converge.
+
+**Post-hoc checks** (`scripts/sainct2020_diagnostics.py`; run after seeing the result,
+so they explain it and change nothing):
+- **The group count isn't the reason.** Even a perfect estimator would show 1.1% with
+  our 50 groups, and 0.5% with 10. We're at 3.0%.
+- **Active learning isn't the reason either.** A linear SVM given 5,000 random labels
+  (five times the paper's budget) reaches only 2.3 to 2.6% against PGA, and a logistic
+  regression on the same four features does no better. On our records, a linear
+  boundary in (L, PGA, PGV, w0) can't get near the paper's 1.6%.
+- So the gap most likely comes from the inputs: a different record set, the T0 fitting
+  the paper doesn't describe, and the approximate up-crossing rate. We can't tell which
+  without the paper's 97 records, which it doesn't list.
+
+**Run cost on this laptop (8 cores, $0):** downloading the records took 7 minutes,
+fitting them 38, building the pool 37 and the experiment 22.

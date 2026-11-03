@@ -16,13 +16,16 @@ uv sync
 uv run pytest
 ```
 
-The reproduction, step by step. Downloading and fitting the records waits for approval
-([docs/spikes.md](docs/spikes.md)), so `FITTED.json` doesn't exist yet:
+The reproduction, step by step (about 1 h 45 min on an 8-core laptop, $0). It was run
+once and **missed** the paper's numbers; see
+[docs/reproduction/sainct2020.md](docs/reproduction/sainct2020.md#result-a-miss-run-once-2026-11-03).
 
 ```bash
-uv run earthquake-screening select-records          # ESM metadata -> data/esm_selection.csv
-uv run earthquake-screening build-pool FITTED.json  # synthetic records, simulated and labelled
-uv run earthquake-screening reproduce               # the 20-start experiment vs the paper's Table 2
+uv run earthquake-screening select-records   # ESM metadata -> data/esm_selection.csv
+uv run earthquake-screening fetch-records    # 16 MB of ESM records, checked against data/esm_records.sha256
+uv run earthquake-screening fit-records      # 8 parameters per component -> data/generated/fitted.json
+uv run earthquake-screening build-pool data/generated/fitted.json   # 100,000 synthetic records, labelled
+uv run earthquake-screening reproduce        # the 20-start experiment vs the paper's Table 2
 ```
 
 ## Layout
@@ -34,8 +37,9 @@ uv run earthquake-screening reproduce               # the 20-start experiment vs
 | `earthquake_screening/reproduction/` | The Sainct et al. experiment, its pass rule and its report |
 | `earthquake_screening/cli.py` | The commands above |
 | `tests/` | One behaviour per test, named as a specification |
+| `scripts/` | Post-hoc diagnostics of the reproduction |
 | `typings/` | Type stubs for OpenSeesPy and the parts of scikit-learn we call |
-| `data/esm_selection.csv` | The ESM records chosen with the paper's filter (metadata only) |
+| `data/esm_selection.csv`, `data/esm_records.sha256`, `data/ESM_ATTRIBUTION.md` | Which ESM records, their pinned checksums, and the credit each file's network asks for |
 | `docs/guide.md` | A walk through one run, a glossary and where to change things |
 
 Records and generated data live in `data/` and are never committed.
