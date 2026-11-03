@@ -1,0 +1,13 @@
+from typing import Self
+
+import numpy as np
+from numpy.typing import NDArray
+from sklearn.gaussian_process.kernels import Kernel
+
+class GaussianProcessRegressor:
+    X_train_: NDArray[np.float64]
+    def __init__(
+        self, kernel: Kernel | None = ..., *, normalize_y: bool = ..., random_state: int | None = ...
+    ) -> None: ...
+    def fit(self, X: NDArray[np.float64], y: NDArray[np.float64]) -> Self: ...
+    def predict(self, X: NDArray[np.float64]) -> NDArray[np.float64]: ...

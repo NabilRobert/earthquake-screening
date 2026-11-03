@@ -5,13 +5,19 @@ fetch-records   the selected recordings -> data/records/ (not committed), checks
 fit-records     8 parameters per component -> data/generated/fitted.json, plus the attribution file
 build-pool      fitted records -> synthetic records simulated and labelled (data/generated/, not committed)
 reproduce       pool -> the 20-start experiment and the report against the paper's Table 2
+fetch-prj2048   slice 2's part of DesignSafe PRJ-2048 -> data/prj2048/ (not committed), checksums pinned
+train-buildings PRJ-2048 -> the building surrogate (data/generated/) and its judged result
 """
 
+import time
 from pathlib import Path
 
 import typer
 
 from earthquake_screening import prj2048
+from earthquake_screening.buildings import report as building_report
+from earthquake_screening.buildings.dataset import load_prj2048
+from earthquake_screening.buildings.experiment import run_experiment
 from earthquake_screening.reproduction.report import format_report
 from earthquake_screening.reproduction.sainct2020 import run_reproduction
 from earthquake_screening.simulation import esm, esm_records
@@ -93,5 +99,20 @@ def reproduce(
     """Run the 20-start experiment and write the comparison with the paper's Table 2."""
     loaded = Pool.load(str(pool))
     report = format_report(run_reproduction(loaded, seed), loaded, seed)
+    output.write_text(report)
+    typer.echo(report)
+
+
+@app.command()
+def train_buildings(
+    output: Path = Path("docs/building-surrogate/prj2048-result.md"),
+    model_path: Path = Path("data/generated/building_model.pkl"),
+    seed: int = 2048,
+) -> None:
+    """Split PRJ-2048 by frame and ground motion, train the surrogate, and judge it by the fixed pass rule."""
+    started = time.perf_counter()
+    model, result = run_experiment(load_prj2048(Path("data/prj2048")), seed)
+    model_sha256 = building_report.save_model(model, model_path)
+    report = building_report.format_report(result, model_sha256, (time.perf_counter() - started) / 60)
     output.write_text(report)
     typer.echo(report)

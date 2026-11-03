@@ -1,0 +1,9 @@
+from typing import Self
+
+import numpy as np
+from numpy.typing import NDArray
+
+class NearestNeighbors:
+    def __init__(self, *, n_neighbors: int = ...) -> None: ...
+    def fit(self, X: NDArray[np.float64]) -> Self: ...
+    def kneighbors(self, X: NDArray[np.float64]) -> tuple[NDArray[np.float64], NDArray[np.int64]]: ...

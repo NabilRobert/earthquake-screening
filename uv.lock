@@ -76,6 +76,7 @@ name = "earthquake-screening"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "mapie" },
     { name = "numpy" },
     { name = "openseespy" },
     { name = "pydantic" },
@@ -97,6 +98,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "mapie", specifier = ">=1.6.0" },
     { name = "numpy", specifier = ">=2.5.4" },
     { name = "openseespy", specifier = ">=3.8.0.0" },
     { name = "pydantic", specifier = ">=2.14.2" },
@@ -162,6 +164,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/45/98/7a1a5f31fd5c7ba93e963b168e244b8e3dd705b3d2a718e3c3307583bf57/linkify_it_py-2.2.0.tar.gz", hash = "sha256:907acd2d17ac1fbb9ddb62c8957ccbd6158cac602231a15c3b0cd1e215f03cee", size = 32939, upload-time = "2026-08-29T07:07:08.305Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/13/d4/1152d1c7ab42d8b908be64fd200ddc870dc9d4925e951198702084aa1a7d/linkify_it_py-2.2.0-py3-none-any.whl", hash = "sha256:3adc40eb5af300b2605fcfdb968c24e1d780a90f1f2221af7c15e5111e94d443", size = 21971, upload-time = "2026-08-29T07:07:07.164Z" },
+]
+
+[[package]]
+name = "mapie"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b3/a0/4aa8f92e3423cb9f8478608b6da89cfa0477b367039035c6102cc2d1cc33/mapie-1.6.0.tar.gz", hash = "sha256:471631634184c4cc22641b8a72572df5b5e281e237b0c00ec6c1c668b78767c2", size = 13478928, upload-time = "2026-10-19T09:08:17.127Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/67/d2/c2a652d10310b8e10731bcff875d0dd1b2fe1e682e73579ef33f428ad6ba/mapie-1.6.0-py3-none-any.whl", hash = "sha256:6bb6b217f33f1301913d230efab68b8b6ec3c0dcdf1e7ad28ccce73435f71dfb", size = 573257, upload-time = "2026-10-19T09:08:14.985Z" },
 ]
 
 [[package]]
