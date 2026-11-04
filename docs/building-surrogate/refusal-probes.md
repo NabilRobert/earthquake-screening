@@ -126,6 +126,9 @@ minutes, so it shows 0.0.) It was run once, with nothing changed after seeing it
 - **Gaps in the design grid are answered.** PRJ-2048's frames have 1, 5, 9, 14 or 19
   storeys and 1, 3 or 5 bays. A 7-storey or 2-bay frame is within range and near
   trained frames, so the envelope answers it, though no such frame was simulated.
+  This was checked once after the run, outside the rule: on the typical row, 7
+  storeys, 12 storeys and 2 bays were all answered, at distances of 0.35, 0.35 and
+  1.11 against the limit of 1.81.
   Whether to refuse counts between the grid points is a decision for slice 4, and
   would need its own rule.
 - **The probes test who gets an answer, not whether the answer is right.** Slice 2
