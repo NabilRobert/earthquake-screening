@@ -22,11 +22,10 @@ such as 0 storeys, NaN or "١٤". Every probe must be refused with a reason nami
 its field, or answered, as the rule fixed beforehand says:
 [docs/building-surrogate/refusal-probes.md](docs/building-surrogate/refusal-probes.md).
 
-## Status: paused after slice 3 (2026-11-04)
+## Status (2026-11-04)
 
 **This is a research piece. No structural engineer has reviewed it, and it is not
-for real decisions about any building.** It is paused because building it further
-without that expertise would be reckless.
+for real decisions about any building.**
 
 | Slice | Result (each run once, against a rule fixed beforehand) |
 |---|---|
@@ -34,7 +33,7 @@ without that expertise would be reckless.
 | 2. Building surrogate on PRJ-2048 | **Passed.** On unseen frames and ground motions: 90.6% interval coverage, RMSE 0.290 in ln drift against 0.431 for the class baseline. Coverage is uneven by storey count (82.6% for 1-storey frames) |
 | 3. Refusal probes | **Passed.** 72 of 72 probes answered or refused as the rule says. Frame sizes between the dataset's grid points (7 storeys, 2 bays) are still answered |
 
-Not built: drift to damage states, the `screen` command and its report (slice 4),
+Not built yet: drift to damage states, the `screen` command and its report (slice 4),
 the agent layer (slice 5) and the write-up (slice 6).
 
 **What an engineer reviewer would need to check:**
@@ -48,17 +47,9 @@ the agent layer (slice 5) and the write-up (slice 6).
 - the training envelope: which inputs should be refused, including sizes between
   the grid points.
 
-**To resume:**
-1. Arthur decides to resume, and a structural engineer agrees to review.
-2. Merge the branches in this order: `feat/sainct-reproduction`,
-   `build/prj2048-data`, `feat/building-surrogate`, `feat/refusal-probes`. None is
-   pushed yet: the repository has no remote.
-3. Re-fetch the data and retrain (commands below). The data and the model are
-   git-ignored. `probe-refusals` loads a model only if its SHA-256 is slice 2's.
-   A retrained file has not been checked for a byte-identical match; if it differs,
-   the probes need re-running against it.
-4. Slice 4 starts with a new rule on the grid-point gap, then follows the slice plan
-   in `docs/planning/slice-plan.md` on the `docs/planning` branch.
+**Branches:** none is pushed yet, as the repository has no remote. Merge them in this
+order: `feat/sainct-reproduction`, `build/prj2048-data`, `feat/building-surrogate`,
+`feat/refusal-probes`.
 
 ## Run it
 
