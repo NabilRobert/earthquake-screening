@@ -100,3 +100,36 @@ distance limit; each combination probe's distance; and the run time.
 
 **What this doesn't test:** whether the answered probes' drifts are right. Slice 2
 measured accuracy. This slice checks only who gets an answer.
+
+## Result: PASS (run once, 2026-11-04)
+
+Full table: [refusal-probes-result.md](refusal-probes-result.md). The run used commit
+6248a54 and took a few seconds on the laptop, at $0. (The report rounds the time to
+minutes, so it shows 0.0.) It was run once, with nothing changed after seeing it.
+
+| Check | Result |
+|---|---|
+| The model is slice 2's (hash), and the rebuilt fit rows give its envelope | yes |
+| Typical and just-inside probes answered with a finite drift and interval | 25 of 25 |
+| Just-outside probes refused, naming the field | 24 of 24 |
+| Combination probes refused as unlike any training case | 2 of 2 |
+| Absurd probes refused, naming the field | 21 of 21 |
+
+- **The combination check has room to spare.** Its limit is 1.81 standardised
+  units. The two impossible spectra sit at 3.54 and 3.36 from the nearest fit row,
+  about twice the limit.
+- **Counts just outside the minimum** (0 storeys, 0 bays) are refused by the request
+  check, as impossible, before the range check sees them. The reason still names the
+  field.
+
+**What the PASS doesn't cover:**
+- **Gaps in the design grid are answered.** PRJ-2048's frames have 1, 5, 9, 14 or 19
+  storeys and 1, 3 or 5 bays. A 7-storey or 2-bay frame is within range and near
+  trained frames, so the envelope answers it, though no such frame was simulated.
+  Whether to refuse counts between the grid points is a decision for slice 4, and
+  would need its own rule.
+- **The probes test who gets an answer, not whether the answer is right.** Slice 2
+  measured accuracy. Its limits stand, such as the uneven coverage by storey count.
+- **The wording is plain but not polished.** Pydantic's reasons start with "Value
+  error," or "Input should be", and the report shows Python's `True` and `nan`.
+  Slice 4's report is where a user reads them.

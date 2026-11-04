@@ -84,6 +84,35 @@ flowchart TD
    applies the pass rule; `buildings/report.py: format_report` writes the result and
    `save_model` the model with its hash.
 
+## Slice 3: one screen, from a request to an answer or a refusal
+
+```mermaid
+flowchart TD
+    A[a request: 12 named values, in g for shaking] -->|ScreenRequest| B{plainly a possible number?}
+    B -->|no| R[refused: the field and what is wrong]
+    B -->|yes: as_inputs, shaking as ln g| C{each input within its training range?}
+    C -->|no| R
+    C -->|yes| D{near some training row?}
+    D -->|no| R
+    D -->|yes| E[answered: drift with a 90% interval]
+```
+
+1. **Check the request.** `screening/refusal.py: assess` validates the values with
+   `screening/request.py: ScreenRequest`. `_plain_number` refuses other scripts'
+   digits, "1_4" and true or false. Pydantic refuses NaN, infinity, counts that
+   aren't whole, values at or below 0, and missing or unknown fields. `describe_error`
+   turns each into a reason that starts with the field's name.
+2. **Check the envelope.** `ScreenRequest.as_inputs` gives the model's input row.
+   `screening/envelope.py: TrainingEnvelope.refusal_reasons` checks each input's
+   range (`_is_in_range`, `_range_reason`, in the user's units), then the distance to
+   the nearest fit row.
+3. **Answer or refuse.** A refused `Assessment` has reasons and no inputs, so it can't
+   be passed to the model. An accepted one goes to `BuildingModel.predict_interval`.
+4. **The probe suite.** `screening/probes.py: build_probes` makes the 72 probes from
+   the fit rows. `buildings/probe_run.py: run_probes` puts each one through steps 1
+   to 3 against the saved model (`load_slice2_model` checks its hash first), and
+   `has_passed` applies slice 3's rule. `buildings/probe_report.py` writes the result.
+
 ## Glossary
 
 | Term | Meaning | In the code |
@@ -111,6 +140,9 @@ flowchart TD
 | **Gradient boosting, Gaussian process** | The two candidate surrogates: many small decision trees added up, and a smooth function with its own uncertainty | `building_model.py` |
 | **Conformal interval, coverage** | A range around each prediction, sized on held-out calibration rows so it holds the true value 90% of the time; coverage is how often it actually does on test | `experiment.py: train`, MAPIE |
 | **Training envelope, refusal** | The region of inputs the model learned from; outside it, the answer is a refusal with the reason, never a number | `screening/envelope.py` |
+| **Probe** | A screen made up to test the refusals: just inside or just outside a bound, an impossible combination, or an absurd value, each with the answer it should get | `screening/probes.py` |
+| **Plain number** | A value written with the digits 0 to 9 and nothing a reader could take two ways; anything else is refused, not guessed at | `request.py: _plain_number` |
+| **Rounding tolerance** | A bound is widened by one part in 10⁹, so a value typed exactly at the training maximum isn't refused because exp and log rounded it | `envelope.py: RANGE_TOLERANCE` |
 | **Hazus, class baseline** | FEMA's loss model groups buildings into classes (here steel frames, low, mid or high-rise) and treats each class alike; the baseline does the same | `class_baseline.py` |
 
 ## Where to change things
@@ -135,3 +167,9 @@ flowchart TD
   `buildings/dataset.py`. The envelope and the baseline follow it.
 - **How strict the refusals are:** `ACCEPTED_CALIBRATION_PERCENTILE` in
   `screening/envelope.py`.
+- **What a request may contain:** the fields of `ScreenRequest` and `PLAIN_NUMBER` in
+  `screening/request.py`. A new model input needs a field here, in `INPUT_NAMES`'
+  order.
+- **The probes:** `ABSURD_VALUES` and `NUDGE` in `screening/probes.py`. They were fixed
+  before the run (`docs/building-surrogate/refusal-probes.md`); a change needs a dated
+  note there.

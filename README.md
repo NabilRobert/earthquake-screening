@@ -16,6 +16,12 @@ range. It is judged on frames and ground motions it never saw, against a
 Hazus-style class baseline:
 [docs/building-surrogate/prj2048.md](docs/building-surrogate/prj2048.md).
 
+The third slice tests the refusals. 72 probes are put to the saved model: values
+just inside and just outside each bound, impossible spectra, and absurd values
+such as 0 storeys, NaN or "١٤". Every probe must be refused with a reason naming
+its field, or answered, as the rule fixed beforehand says:
+[docs/building-surrogate/refusal-probes.md](docs/building-surrogate/refusal-probes.md).
+
 ## Run it
 
 ```bash
@@ -43,6 +49,14 @@ uv run earthquake-screening fetch-prj2048    # 35 MB of PRJ-2048, checked agains
 uv run earthquake-screening train-buildings  # split, train, calibrate, judge -> docs/building-surrogate/prj2048-result.md
 ```
 
+The refusal probes (a few seconds, $0; needs the model from `train-buildings`). They
+were run once and **passed**; see
+[the result](docs/building-surrogate/refusal-probes.md#result-pass-run-once-2026-11-04):
+
+```bash
+uv run earthquake-screening probe-refusals   # 72 probes vs slice 2's model -> docs/building-surrogate/refusal-probes-result.md
+```
+
 ## Layout
 
 | Path | What it does |
@@ -51,9 +65,9 @@ uv run earthquake-screening train-buildings  # split, train, calibrate, judge ->
 | `earthquake_screening/surrogate/` | Active learning with a linear SVM, and fragility curves with their error |
 | `earthquake_screening/reproduction/` | The Sainct et al. experiment, its pass rule and its report |
 | `earthquake_screening/prj2048.py` | Fetching slice 2's part of PRJ-2048, with pinned checksums |
-| `earthquake_screening/buildings/` | Slice 2: reading PRJ-2048, the split by frame and ground motion, the run and its report |
+| `earthquake_screening/buildings/` | Slices 2 and 3: reading PRJ-2048, the split by frame and ground motion, the runs and their reports |
 | `earthquake_screening/surrogate/building_model.py`, `class_baseline.py` | The two candidate surrogates and the Hazus-style baseline |
-| `earthquake_screening/screening/` | What a screen runs: the training envelope that refuses unfamiliar inputs. Never imports OpenSeesPy |
+| `earthquake_screening/screening/` | What a screen runs: checking the request, the training envelope that refuses unfamiliar inputs, and the probes that test both. Never imports OpenSeesPy |
 | `earthquake_screening/cli.py` | The commands above |
 | `tests/` | One behaviour per test, named as a specification |
 | `scripts/` | Post-hoc diagnostics of the reproduction |
