@@ -5,6 +5,7 @@ import pytest
 
 from earthquake_screening.buildings.dataset import INPUT_NAMES
 from earthquake_screening.screening.envelope import TrainingEnvelope
+from earthquake_screening.screening.request import REQUEST_FIELDS
 
 INPUT_COUNT = len(INPUT_NAMES)
 
@@ -39,7 +40,7 @@ def test_an_input_above_its_range_is_refused_with_its_name_and_range() -> None:
 def test_a_non_number_is_refused() -> None:
     row = np.full(INPUT_COUNT, 0.5)
     row[-1] = np.nan
-    assert two_cluster_envelope().refusal_reasons(row) == [f"{INPUT_NAMES[-1]} is nan, not a number"]
+    assert two_cluster_envelope().refusal_reasons(row) == [f"{REQUEST_FIELDS[-1]} is nan, not a number"]
 
 
 def test_an_unseen_combination_is_refused_though_each_input_is_in_range() -> None:
@@ -71,3 +72,20 @@ def test_checking_many_rows_agrees_with_checking_one() -> None:
 def test_a_row_with_a_missing_input_is_an_error_naming_the_expected_inputs() -> None:
     with pytest.raises(ValueError, match="expected 12 inputs in this order: storeys"):
         two_cluster_envelope().refusal_reasons(np.full(INPUT_COUNT - 1, 0.5))
+
+
+def test_shaking_out_of_range_is_reported_in_g_under_the_field_the_user_typed() -> None:
+    row = np.full(INPUT_COUNT, 0.5)
+    row[INPUT_NAMES.index("ln_pga_g")] = np.log(2.0)
+    reasons = two_cluster_envelope().refusal_reasons(row)
+    assert reasons == [f"pga_g = 2 is outside the training range {np.exp(0.5):.4g} to {np.exp(0.5):.4g}"]
+
+
+@pytest.mark.parametrize(("past_maximum", "is_accepted"), [(1e-12, True), (1e-6, False)])
+def test_a_rounding_step_past_a_bound_is_accepted_but_a_real_step_is_not(
+    past_maximum: float, is_accepted: bool
+) -> None:
+    row = np.full(INPUT_COUNT, 0.5)
+    row[2] += past_maximum  # the third input is 0.5 in every fit row: its range is 0.5 to 0.5
+    envelope = two_cluster_envelope()
+    assert (envelope.refusal_reasons(row) == []) is is_accepted
