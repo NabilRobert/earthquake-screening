@@ -1,0 +1,65 @@
+[project]
+name = "earthquake-screening"
+version = "0.0.0"
+description = "Earthquake screening for buildings: a surrogate trained on nonlinear simulations, starting with a published reproduction"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "mapie>=1.6.0",
+    "numpy>=2.5.4",
+    "openseespy>=3.8.0.0",
+    "pydantic>=2.14.2",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "tenacity>=9.2.1",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+earthquake-screening = "earthquake_screening.cli:app"
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["earthquake_screening"]
+
+[dependency-groups]
+dev = [
+    "mutmut==3.8.1",
+    "pyright==1.1.414",
+    "pytest==9.2.0",
+    "pytest-timeout==2.4.0",
+    "ruff==0.17.3",
+    "scipy-stubs==1.18.1.1",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# C901 and PLR09xx: the lean-code limits (complexity 10, few returns, branches, arguments and statements).
+select = ["E", "F", "W", "I", "B", "UP", "S", "ARG", "RUF", "C90", "PLR0911", "PLR0912", "PLR0913", "PLR0915"]
+# S101: pytest's asserts.
+ignore = ["S101"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.pyright]
+include = ["earthquake_screening", "tests", "scripts"]
+strict = ["earthquake_screening", "tests", "scripts"]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+timeout = 120
+
+[tool.mutmut]
+source_paths = ["earthquake_screening/"]
+also_copy = ["tests/"]

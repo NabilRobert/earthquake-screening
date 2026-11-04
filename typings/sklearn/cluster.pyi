@@ -1,0 +1,6 @@
+import numpy as np
+from numpy.typing import NDArray
+
+class KMeans:
+    def __init__(self, n_clusters: int = ..., n_init: int = ..., random_state: int | None = ...) -> None: ...
+    def fit_predict(self, X: NDArray[np.float64]) -> NDArray[np.int32]: ...

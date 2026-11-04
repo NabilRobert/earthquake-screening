@@ -1,0 +1,9 @@
+from typing import Self
+
+import numpy as np
+from numpy.typing import NDArray
+
+class LogisticRegression:
+    def __init__(self, C: float = ...) -> None: ...
+    def fit(self, X: NDArray[np.float64], y: NDArray[np.bool_]) -> Self: ...
+    def predict_proba(self, X: NDArray[np.float64]) -> NDArray[np.float64]: ...
