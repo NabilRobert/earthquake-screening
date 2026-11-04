@@ -7,6 +7,7 @@ build-pool      fitted records -> synthetic records simulated and labelled (data
 reproduce       pool -> the 20-start experiment and the report against the paper's Table 2
 fetch-prj2048   slice 2's part of DesignSafe PRJ-2048 -> data/prj2048/ (not committed), checksums pinned
 train-buildings PRJ-2048 -> the building surrogate (data/generated/) and its judged result
+probe-refusals  slice 2's saved model -> the refusal probe suite, judged by slice 3's fixed rule
 """
 
 import time
@@ -15,11 +16,15 @@ from pathlib import Path
 import typer
 
 from earthquake_screening import prj2048
+from earthquake_screening.buildings import probe_run
 from earthquake_screening.buildings import report as building_report
 from earthquake_screening.buildings.dataset import load_prj2048
 from earthquake_screening.buildings.experiment import run_experiment
+from earthquake_screening.buildings.probe_report import format_probe_report
+from earthquake_screening.buildings.split import rows_for, split_prj2048
 from earthquake_screening.reproduction.report import format_report
 from earthquake_screening.reproduction.sainct2020 import run_reproduction
+from earthquake_screening.screening.probes import build_probes
 from earthquake_screening.simulation import esm, esm_records
 from earthquake_screening.simulation.fit_all import fit_components
 from earthquake_screening.simulation.oscillator import Oscillator
@@ -114,5 +119,22 @@ def train_buildings(
     model, result = run_experiment(load_prj2048(Path("data/prj2048")), seed)
     model_sha256 = building_report.save_model(model, model_path)
     report = building_report.format_report(result, model_sha256, (time.perf_counter() - started) / 60)
+    output.write_text(report)
+    typer.echo(report)
+
+
+@app.command()
+def probe_refusals(
+    output: Path = Path("docs/building-surrogate/refusal-probes-result.md"),
+    model_path: Path = Path("data/generated/building_model.pkl"),
+) -> None:
+    """Put the probe suite to slice 2's saved model and judge it by slice 3's fixed rule."""
+    started = time.perf_counter()
+    model = probe_run.load_slice2_model(model_path)
+    data = load_prj2048(Path("data/prj2048"))
+    split = split_prj2048(data)
+    fit_inputs = rows_for(data, split.fit_frames, split.training_motions).inputs
+    run = probe_run.run_probes(model, fit_inputs, build_probes(fit_inputs))
+    report = format_probe_report(run, (time.perf_counter() - started) / 60)
     output.write_text(report)
     typer.echo(report)
